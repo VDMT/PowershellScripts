@@ -3,15 +3,17 @@
 ### Queries all CNAME and A records in a DNS Zone, determines CNAME's that are
 ### not associated to a host with a IP address
 
-
-### type zone name below..
-$zoneCollection=@()
-$zone = ''
-$dnsServer = ''
-$exportResultFile = 'c:\temp\InactiveCNAMEList.csv'
-
 ### find zone names' using command:
 # Get-DnsServerZone -ComputerName $dnsServer
+
+### enter zone name and DNS server below..
+$zone = ''
+$dnsServer = ''
+
+$zoneCollection=@()
+$exportResultFile = "c:\temp\InactiveCNAMEList for $zone.csv"
+
+
 
 function NewHostDNSEntry {
     param (
