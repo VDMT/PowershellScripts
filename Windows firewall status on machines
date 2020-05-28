@@ -1,0 +1,9 @@
+$servers = @(
+'server1'
+,'server2'
+)
+
+Invoke-Command -ScriptBlock { Get-NetFirewallProfile | select pscomputername, profile, enabled} `
+    -ComputerName $servers  |
+    SELECT pscomputername, profile, enabled | Format-cs
+
