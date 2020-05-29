@@ -1,7 +1,0 @@
-$results = @()
-
-$results = Invoke-Command -ScriptBlock { Get-Service | Where-Object {$_.displayname -Like "*SQL server*" -and $_.starttype -ne 'Disabled' -and $_.StartType -ne 'Manual' } | select -property name, starttype, status, displayname } `
-    -ComputerName $sql_servers_stage  |
-    SELECT pscomputername, name, starttype, status 
-
-$results

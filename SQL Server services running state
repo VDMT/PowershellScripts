@@ -1,0 +1,42 @@
+## enters server names into variable 
+
+$sql_servers = @(
+''
+,''
+)
+
+$results = @()
+$Params = @{} 
+$Params.ComputerName = $sql_servers #'localhost'
+
+$results = Invoke-Command @Params { 
+    $s_local = @()
+
+    function SvcEntry {
+        param (
+            [string]$internalName, [string]$isDelayedAutoStart, [string]$wmiStatus, [string]$status, [string]$startType
+        )
+        New-Object -TypeName psobject -Property @{InternalName=$internalName; IsDelayedAutoStart=$isDelayedAutoStart; WmiStatus=$wmiStatus; Status=$status; StartType=$startType}
+    }
+
+    $Services = Get-WmiObject -Class Win32_Service -Filter { 
+        StartMode = 'Auto' and (Name LIKE '%MSSQL%') OR (Name LIKE '%SQLSERVERAGENT%')
+    } 
+    
+    foreach ($Service in $Services.Name)
+    {
+        Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\$Service" | 
+        Select-Object -Property @{n='ServiceName';e={$_.PSChildName}}, 
+            @{n='DelayedAutoStart';e={$_.DelayedAutoStart}},
+            @{n='WMIStatus';e={ $Services | where-object name -eq $Service | Select-Object -Property Status }} | 
+            ForEach-Object {
+                $t = $Service | Get-Service
+                $s_local += SvcEntry -InternalName $_.ServiceName -IsDelayedAutoStart $_.DelayedAutoStart -WmiStatus $_.WMIStatus.Status -Status $t.Status -StartType $t.StartType
+            }        
+    }
+
+    $s_local 
+}
+
+$results | Select-Object PSComputerName, InternalName, Status, StartType, IsDelayedAutoStart, WMIStatus | Format-Table
+
